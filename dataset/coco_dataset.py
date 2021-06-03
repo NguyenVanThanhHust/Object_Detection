@@ -37,7 +37,18 @@ class CocoDetection(data.Dataset):
         target = coco.loadAnns(ann_ids)
 
         path = coco.loadImgs(img_id)[0]['file_name']
-
+        # print(target)
+        list_bbox = []
+        label = []
+        for each_target in target:
+            bbox = each_target["bbox"]
+            segmentation = each_target["segmentation"]
+            list_bbox.append(bbox)
+            label.append(each_target["category_id"])
+        target = {
+            "label":label,
+            "bbox":bbox,
+        }
         img = Image.open(os.path.join(self.root, path)).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
