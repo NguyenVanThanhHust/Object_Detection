@@ -1,5 +1,7 @@
-import transforms as T
-
+try:
+    import transforms as T
+except Exception as e:
+    import dataset.transforms as T
 
 class DetectionPresetTrain:
     def __init__(self, data_augmentation, hflip_prob=0.5, mean=(123., 117., 104.)):

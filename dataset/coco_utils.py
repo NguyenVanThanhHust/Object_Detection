@@ -9,8 +9,10 @@ import torchvision
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
-import transforms as T
-
+try:
+    import transforms as T
+except Exception as e:
+    import dataset.transforms as T
 
 class FilterAndRemapCocoCategories(object):
     def __init__(self, categories, remap=True):
