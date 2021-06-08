@@ -157,3 +157,5 @@ def main(args):
         collate_fn=utils.collate_fn)
 
     print("Creating model")
+
+    
