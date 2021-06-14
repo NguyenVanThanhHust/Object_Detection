@@ -1,11 +1,9 @@
 # Object_Detection
-This is faster rcnn implementation.
+This is faster rcnn implementation of pytorch.
 Dataloader and multi gpu training is adopted from pytorch github:
 https://github.com/pytorch/vision/tree/master/references/detection
 
-Main difference is I learn to implement layer by my self.
-
-
+This would be baseline to build from
 Cmd: 
 
 Single GPU:

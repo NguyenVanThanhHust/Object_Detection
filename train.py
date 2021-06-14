@@ -31,8 +31,7 @@ from dataset.coco_utils import get_coco, get_coco_kp
 
 from dataset.group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
 from engine import train_one_epoch, evaluate
-from faster_rcnn import fasterRcnn
-from faster_rcnn import ResNet50
+
 import dataset.presets
 import utils
 
@@ -56,7 +55,7 @@ def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Detection Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default='../data/coco_2017/', help='dataset')
+    parser.add_argument('--data-path', default="../data/coco_2017/", help='dataset')
     parser.add_argument('--dataset', default='coco', help='dataset')
     parser.add_argument('--model', default='maskrcnn_resnet50_fpn', help='model')
     parser.add_argument('--device', default='cuda', help='device')
@@ -157,13 +156,15 @@ def main(args):
         sampler=test_sampler, num_workers=args.workers,
         collate_fn=utils.collate_fn)
 
-    resnet = ResNet50()
-
-    test_fasterRcnn = fasterRcnn(backbone=resnet)
-    print(test_fasterRcnn) 
     print("Creating model")
-
-    model = test_fasterRcnn
+    kwargs = {
+        "trainable_backbone_layers": args.trainable_backbone_layers
+    }
+    if "rcnn" in args.model:
+        if args.rpn_score_thresh is not None:
+            kwargs["rpn_score_thresh"] = args.rpn_score_thresh
+    model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
+                                                              **kwargs)
     model.to(device)
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -186,6 +187,13 @@ def main(args):
     else:
         raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
                            "are supported.".format(args.lr_scheduler))
+
+    if args.resume:
+        checkpoint = torch.load(args.resume, map_location='cpu')
+        model_without_ddp.load_state_dict(checkpoint['model'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
+        args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
         evaluate(model, data_loader_test, device=device)
@@ -219,6 +227,7 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
+
 
 if __name__ == "__main__":
     args = get_args_parser().parse_args()
