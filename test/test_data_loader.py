@@ -1,4 +1,4 @@
-from coco_dataset import CocoDetection
+from .dataset.coco_dataset import CocoDetection
 import os
 import torch
 import pandas as pd
@@ -30,18 +30,12 @@ data_path = "../data/coco_2017/"
 dataset, num_classes = get_dataset("coco", "train", get_transform(True, "ssd"),
                                        data_path)
 
+# coco_dataset = get_coco(root="../data/coco_2017/train2017",image_set="train", transforms=)
 train_loader = DataLoader(dataset=dataset, batch_size=4, collate_fn=utils.collate_fn)
 print("number of sample: ", dataset.__len__())
 
 print("import some sample")
 for idx, sample in enumerate(train_loader):
-    images, labels = sample
-    for image, label in zip(images, labels):
-        for k, v in label.items():
-            if k=="masks":
-                continue
-            print(k, v)
-            print()
-        print(2*"\n")
-    if idx == 0:
-        break
+    print(sample)
+    if idx > 2:
+        continue

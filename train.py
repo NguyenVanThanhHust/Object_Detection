@@ -31,7 +31,8 @@ from dataset.coco_utils import get_coco, get_coco_kp
 
 from dataset.group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
 from engine import train_one_epoch, evaluate
-
+from faster_rcnn import fasterRcnn
+from faster_rcnn import ResNet50
 import dataset.presets
 import utils
 
@@ -48,14 +49,14 @@ def get_dataset(name, image_set, transform, data_path):
 
 
 def get_transform(train, data_augmentation):
-    return presets.DetectionPresetTrain(data_augmentation) if train else presets.DetectionPresetEval()
+    return dataset.presets.DetectionPresetTrain(data_augmentation) if train else dataset.presets.DetectionPresetEval()
 
 
 def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Detection Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default='/datasets01/COCO/022719/', help='dataset')
+    parser.add_argument('--data-path', default='../data/coco_2017/', help='dataset')
     parser.add_argument('--dataset', default='coco', help='dataset')
     parser.add_argument('--model', default='maskrcnn_resnet50_fpn', help='model')
     parser.add_argument('--device', default='cuda', help='device')
@@ -156,6 +157,69 @@ def main(args):
         sampler=test_sampler, num_workers=args.workers,
         collate_fn=utils.collate_fn)
 
+    resnet = ResNet50()
+
+    test_fasterRcnn = fasterRcnn(backbone=resnet)
+    print(test_fasterRcnn) 
     print("Creating model")
 
-    
+    model = test_fasterRcnn
+    model.to(device)
+    if args.distributed and args.sync_bn:
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+
+    model_without_ddp = model
+    if args.distributed:
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        model_without_ddp = model.module
+
+
+    params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.SGD(
+        params, lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+
+    args.lr_scheduler = args.lr_scheduler.lower()
+    if args.lr_scheduler == 'multisteplr':
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
+    elif args.lr_scheduler == 'cosineannealinglr':
+        lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+    else:
+        raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
+                           "are supported.".format(args.lr_scheduler))
+
+    if args.test_only:
+        evaluate(model, data_loader_test, device=device)
+        return
+
+    print("Start training")
+    start_time = time.time()
+    for epoch in range(args.start_epoch, args.epochs):
+        if args.distributed:
+            train_sampler.set_epoch(epoch)
+        train_one_epoch(model, optimizer, data_loader, device, epoch, args.print_freq)
+        lr_scheduler.step()
+        if args.output_dir:
+            checkpoint = {
+                'model': model_without_ddp.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'lr_scheduler': lr_scheduler.state_dict(),
+                'args': args,
+                'epoch': epoch
+            }
+            utils.save_on_master(
+                checkpoint,
+                os.path.join(args.output_dir, 'model_{}.pth'.format(epoch)))
+            utils.save_on_master(
+                checkpoint,
+                os.path.join(args.output_dir, 'checkpoint.pth'))
+
+        # evaluate after every epoch
+        evaluate(model, data_loader_test, device=device)
+
+    total_time = time.time() - start_time
+    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    print('Training time {}'.format(total_time_str))
+
+if __name__ == "__main__":
+    args = get_args_parser().parse_args()
+    main(args)

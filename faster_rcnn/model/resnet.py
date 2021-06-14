@@ -93,7 +93,7 @@ class ResNet(nn.Module):
             self.in_planes = planes * block.expansion
         return nn.Sequential(*layers)
 
-    def forward(self, x, is_extract=False):
+    def forward(self, x, is_extract=True):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.layer2(out)
@@ -104,6 +104,8 @@ class ResNet(nn.Module):
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
+        print(out.shape)
+
         return out
 
 
@@ -128,7 +130,7 @@ def ResNet152():
 
 
 def test():
-    net = ResNet18()
+    net = ResNet50()
     y = net(torch.randn(1, 3, 32, 32))
     print(y.size())
 
