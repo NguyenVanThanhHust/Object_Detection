@@ -8,16 +8,13 @@ Cmd:
 
 Single GPU:
 ```
-python -m torch.distributed.launch --nproc_per_node=1  --use_env train.py\
-    --dataset coco --model fasterrcnn_resnet50_fpn --epochs 26\
-    --lr-steps 16 22 --aspect-ratio-group-factor 3 \
-    --data-path ../data/coco_2017
+CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --nproc_per_node=1 --use_env train.py    --dataset coco --model fasterrcnn_resnet50_fpn --trainable-backbone-layers 4 --epochs 26    --lr-steps 16 22 --aspect-ratio-group-factor 3 --data-path  ../data/coco_2017
 ```
 
 Mutli GPU
 ```
-python -m torch.distributed.launch --nproc_per_node=8 --use_env train.py\
-    --dataset coco --model fasterrcnn_resnet50_fpn --epochs 26\
+CUDA_VISIBLE_DEVICES=1,2 python -m torch.distributed.launch --nproc_per_node=2 --use_env train.py\
+    --dataset coco --model fasterrcnn_resnet50_fpn --trainable-backbone-layers 4 --epochs 26\
     --lr-steps 16 22 --aspect-ratio-group-factor 3 \
     --data-path ../data/coco_2017
 ```

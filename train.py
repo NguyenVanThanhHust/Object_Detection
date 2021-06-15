@@ -18,7 +18,7 @@ Because the number of images is smaller in the person keypoint subset of COCO,
 the number of epochs should be adapted so that we have the same number of iterations.
 """
 import datetime
-import os
+import os, sys
 import time
 
 import torch
@@ -39,7 +39,7 @@ import utils
 def get_dataset(name, image_set, transform, data_path):
     paths = {
         "coco": (data_path, get_coco, 91),
-        "coco_kp": (data_path, get_coco_kp, 2)
+        # "coco_kp": (data_path, get_coco_kp, 2)
     }
     p, ds_fn, num_classes = paths[name]
 
@@ -82,7 +82,7 @@ def get_args_parser(add_help=True):
                         help='decrease lr by a factor of lr-gamma (multisteplr scheduler only)')
     parser.add_argument('--print-freq', default=20, type=int, help='print frequency')
     parser.add_argument('--output-dir', default='.', help='path where to save')
-    parser.add_argument('--resume', default='', help='resume from checkpoint')
+    parser.add_argument('--resume', type=bool, default=False, help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, help='start epoch')
     parser.add_argument('--aspect-ratio-group-factor', default=3, type=int)
     parser.add_argument('--rpn-score-thresh', default=None, type=float, help='rpn score threshold for faster-rcnn')
@@ -189,7 +189,7 @@ def main(args):
                            "are supported.".format(args.lr_scheduler))
 
     if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
+        checkpoint = torch.load(args.resume, map_location={'cpu':'cuda:0'})
         model_without_ddp.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
