@@ -9,7 +9,7 @@ import torchvision.models as models
 from torch.autograd import Variable
 import numpy as np
 
-from .resnet import ResNet50
+from .resnet import resnet152, resnet101, resnet50, resnet34, resnet18
 from .vgg import VGG
 torch.cuda.empty_cache()
 

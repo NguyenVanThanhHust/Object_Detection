@@ -24,8 +24,9 @@ import time
 import torch
 import torch.utils.data
 import torchvision
-import torchvision.models.detection
-import torchvision.models.detection.mask_rcnn
+# import torchvision.models.detection
+# import torchvision.models.detection.mask_rcnn
+from faster_rcnn import resnet34, resnet50
 
 from dataset.coco_utils import get_coco, get_coco_kp
 
@@ -163,8 +164,10 @@ def main(args):
     if "rcnn" in args.model:
         if args.rpn_score_thresh is not None:
             kwargs["rpn_score_thresh"] = args.rpn_score_thresh
-    model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
-                                                              **kwargs)
+    # model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
+    #                                                           **kwargs)
+    model = resnet50()
+    
     model.to(device)
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
