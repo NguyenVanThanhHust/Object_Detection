@@ -12,9 +12,9 @@ import torchvision.models as models
 from torch.autograd import Variable
 import numpy as np
 
-from model.resnet import resnet152, resnet101, resnet50, resnet34, resnet18
-from faster_rcnn.model.faster_rcnn_base import fasterRcnn
-from .vgg import VGG
+from resnet import resnet152, resnet101, resnet50, resnet34, resnet18
+from faster_rcnn_base import fasterRcnn
+from vgg import VGG
 
 torch.cuda.empty_cache()
 
@@ -29,7 +29,6 @@ class faster_rcnn_resnet(fasterRcnn):
         self.classes = classes
         # self.num_class = len(classes)
         self.num_class = 3
-        self.base_cnn = backbone
     #   Resize(min_size=(800,), max_size=1333, mode='bilinear')
 
         self.image_mean = [0.485, 0.456, 0.406]
@@ -109,7 +108,7 @@ class faster_rcnn_resnet(fasterRcnn):
     def forward(self, images, targets=None):
         images, image_sizes, targets = self.transform(images, targets)
         print(images.shape)
-        feature_maps = self.base_cnn(images)
+        feature_maps = self.backbone(images, extract_feature=True)
         print(feature_maps.shape)
 
 def test():
@@ -147,28 +146,27 @@ def test():
     }
     labels.append(label)
 
-    # label = {
-    #     "boxes": torch.tensor([[180.2600,  31.0200, 435.1400, 355.1400],
-    #     [236.0400, 155.8100, 402.4400, 351.0600]]),
-    #     "labels": torch.tensor([64, 86]),
-    #     "image_id": torch.tensor([30]),
-    #     "area": torch.tensor([47675.6641, 16202.7979]),
-    #     "iscrowd": torch.tensor([0, 0, ])
-    # }
-    # labels.append(label)
+    label = {
+        "boxes": torch.tensor([[180.2600,  31.0200, 435.1400, 355.1400],
+        [236.0400, 155.8100, 402.4400, 351.0600]]),
+        "labels": torch.tensor([64, 86]),
+        "image_id": torch.tensor([30]),
+        "area": torch.tensor([47675.6641, 16202.7979]),
+        "iscrowd": torch.tensor([0, 0, ])
+    }
+    labels.append(label)
 
-    # label = {
-    #     "boxes": torch.tensor([[234.9600,  22.0600, 668.0000, 401.2100]]),
-    #     "labels": torch.tensor([24]),
-    #     "image_id": torch.tensor([34]),
-    #     "area": torch.tensor([92920.1562]),
-    #     "iscrowd": torch.tensor([0, ])
-    # }
-    # labels.append(label)
+    label = {
+        "boxes": torch.tensor([[234.9600,  22.0600, 668.0000, 401.2100]]),
+        "labels": torch.tensor([24]),
+        "image_id": torch.tensor([34]),
+        "area": torch.tensor([92920.1562]),
+        "iscrowd": torch.tensor([0, ])
+    }
+    labels.append(label)
     
     images = tuple(images)
     targets = tuple(labels)
-    # device = torch.device("cpu")
     device = torch.device("cuda")
     images = list(image.to(device) for image in images)
     targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
