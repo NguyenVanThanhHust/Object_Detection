@@ -9,11 +9,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torchvision.models as models
-from torch.autograd import Variable
 import numpy as np
 
 from resnet import resnet152, resnet101, resnet50, resnet34, resnet18
 from faster_rcnn_base import fasterRcnn
+from rpn import RegionProposalLayer
 from vgg import VGG
 
 torch.cuda.empty_cache()
@@ -27,10 +27,8 @@ class faster_rcnn_resnet(fasterRcnn):
             raise NotImplementedError
 
         self.classes = classes
-        # self.num_class = len(classes)
         self.num_class = 3
-    #   Resize(min_size=(800,), max_size=1333, mode='bilinear')
-
+        self.rpn = RegionProposalLayer()
         self.image_mean = [0.485, 0.456, 0.406]
         self.image_std = [0.229, 0.224, 0.225]
         self.size_divisible = 32
@@ -107,9 +105,10 @@ class faster_rcnn_resnet(fasterRcnn):
 
     def forward(self, images, targets=None):
         images, image_sizes, targets = self.transform(images, targets)
-        print(images.shape)
+        # print(images.shape) torch.Size([4, 3, 1184, 768]) 
         feature_maps = self.backbone(images, extract_feature=True)
-        print(feature_maps.shape)
+        # print(feature_maps.shape) torch.Size([4, 512, 7, 7])
+
 
 def test():
     classes = ["Human", "dog", "cat"]
@@ -119,8 +118,8 @@ def test():
     labels = list()
     images.append(torch.rand([3, 370, 414]))
     images.append(torch.rand([3, 603, 752]))
-    # images.append(torch.rand([3, 423, 393]))
-    # images.append(torch.rand([3, 1157, 679]))
+    images.append(torch.rand([3, 423, 393]))
+    images.append(torch.rand([3, 1157, 679]))
     label = {
         "boxes": torch.tensor([[  0.0000, 176.6900, 246.0000, 451.0000],
         [ 41.6000, 218.2700, 246.0000, 451.0000],

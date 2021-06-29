@@ -116,6 +116,7 @@ class ResNet(nn.Module):
         # it is slightly better whereas slower to set stride = 1
         # self.layer4 = self._make_layer(block, 512, layers[3], stride=1)
         self.avgpool = nn.AvgPool2d(7)
+        self.adapavgpool = nn.AdaptiveAvgPool2d((7,7))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -154,7 +155,8 @@ class ResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
 
-        x = self.avgpool(x)
+        # x = self.avgpool(x)
+        x = self.adapavgpool(x)
         if extract_feature:
             return x
         x = x.view(x.size(0), -1)
