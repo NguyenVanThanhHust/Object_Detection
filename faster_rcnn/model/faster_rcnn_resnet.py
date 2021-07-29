@@ -173,4 +173,4 @@ def test():
     test_fasterRcnn.to(device)
     output = test_fasterRcnn(images, targets)
 
-test()
+# test()

@@ -3,7 +3,8 @@ This is faster rcnn implementation of pytorch.
 Dataloader and multi gpu training is adopted from pytorch github:
 https://github.com/pytorch/vision/tree/master/references/detection
 
-This would be baseline to build from
+This would be baseline to build from https://github.com/jwyang/faster-rcnn.pytorch
+
 Cmd: 
 
 Single GPU:

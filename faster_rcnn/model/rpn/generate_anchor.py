@@ -72,9 +72,9 @@ def _scale_enum(anchor, scales):
     anchors = _mkanchors(ws, hs, x_ctr, y_ctr)
     return anchors
 
-if __name__ == '__main__':
-    import time
-    t = time.time()
-    a = generate_anchors()
-    print(time.time() - t)
-    print(a)
+# if __name__ == '__main__':
+#     import time
+#     t = time.time()
+#     a = generate_anchors()
+#     print(time.time() - t)
+#     print(a)
