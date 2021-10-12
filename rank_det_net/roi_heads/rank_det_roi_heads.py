@@ -2,10 +2,7 @@ from fvcore.common.registry import Registry
 from typing import Dict, List, Tuple, Union
 import torch
 from detectron2.modeling import ROI_HEADS_REGISTRY, StandardROIHeads
-from detectron2.modeling.poolers import ROIPooler
 from detectron2.layers import ShapeSpec
-from detectron2.modeling.roi_heads import select_foreground_proposals
-from detectron2.structures import Boxes
 
 from detectron2.modeling.roi_heads.fast_rcnn import FastRCNNOutputLayers
 from detectron2.layers import (
@@ -13,13 +10,7 @@ from detectron2.layers import (
 )
 
 
-RANK_ROI_HEADS_REGISTRY = Registry("RANK_ROI_HEAD")
-RANK_ROI_HEADS_REGISTRY.__doc__ == """
-Registry for rank det net ROI_heads, basically, it is the same 
-as standard roi heads
-
-"""
-@RANK_ROI_HEADS_REGISTRY.register()
+@ROI_HEADS_REGISTRY.register()
 class RankROIHeads(StandardROIHeads): 
     def __init__(self, cfg, input_shape: ShapeSpec):
         super(RankROIHeads, self).__init__(cfg, input_shape)
@@ -29,7 +20,6 @@ class RankROIHeads(StandardROIHeads):
         del images
         if self.training:
             assert targets
-            import pdb; pdb.set_trace()
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
 
@@ -44,9 +34,6 @@ class RankROIHeads(StandardROIHeads):
             return pred_instances, {}
 
 
-def build_rankdet_head(cfg, input_shape):
-    name = cfg.MODEL.RANK_ROI_HEAD.NAME
-    return RANK_ROI_HEADS_REGISTRY.get(name)(cfg, input_shape)
 
 class RankDetNetOutputLayers(FastRCNNOutputLayers):
     def __init__(self, input_shape: ShapeSpec, *, box2box_transform, num_classes: int, test_score_thresh: float = 0, test_nms_thresh: float = 0.5, test_topk_per_image: int = 100, cls_agnostic_bbox_reg: bool = False, smooth_l1_beta: float = 0, box_reg_loss_type: str = "smooth_l1", loss_weight: Union[float, Dict[str, float]] = 1):

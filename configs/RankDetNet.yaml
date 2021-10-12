@@ -5,8 +5,10 @@ MODEL:
   MASK_ON: False
   RESNETS:
     DEPTH: 50
+  ROI_HEADS:
+    NAME: "RankROIHeads"
   RANK_ROI_HEAD:
-    NAME: "RankRoiHead"
+    NAME: "RankROIHeads"
     
 DATASETS:
   TRAIN: ("coco_2017_train",)
