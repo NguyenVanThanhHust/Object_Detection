@@ -39,6 +39,7 @@ from detectron2.evaluation import (
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
+from rank_det_net import add_rankdet_net_config
 
 def build_evaluator(cfg, dataset_name, output_folder=None):
     """
@@ -121,6 +122,7 @@ def setup(args):
     Create configs and perform basic setups.
     """
     cfg = get_cfg()
+    add_rankdet_net_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
