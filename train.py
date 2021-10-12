@@ -24,8 +24,6 @@ import time
 import torch
 import torch.utils.data
 import torchvision
-# import torchvision.models.detection
-# import torchvision.models.detection.mask_rcnn
 from faster_rcnn import resnet34, resnet50
 
 from dataset.coco_utils import get_coco, get_coco_kp

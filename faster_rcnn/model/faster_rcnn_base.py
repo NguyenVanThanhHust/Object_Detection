@@ -6,11 +6,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torchvision.models as models
-from torch.autograd import Variable
 import numpy as np
 
-from resnet import resnet152, resnet101, resnet50, resnet34, resnet18
-from vgg import VGG
+from .resnet import resnet152, resnet101, resnet50, resnet34, resnet18
+from .vgg import VGG
 torch.cuda.empty_cache()
 
 class fasterRcnn(nn.Module):

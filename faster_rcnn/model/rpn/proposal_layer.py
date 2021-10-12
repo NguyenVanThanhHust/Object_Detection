@@ -1,11 +1,16 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from generate_anchor import generate_anchors
 from einops import rearrange
 
+try:
+    from .generate_anchor import generate_anchors
+    from .bbox_tranform import bbox_transform, bbox_transform_inv, clip_boxes
+except:
+    from generate_anchor import generate_anchors
+    from bbox_tranform import bbox_transform, bbox_transform_inv, clip_boxes
+
 # from faster_rcnn.model.configs import config
-import pdb
 
 RPN_PRE_NMS_TOP_N = 12000
 RPN_POST_NMS_TOP_N = 2000
@@ -20,11 +25,10 @@ class _ProposalLayer(nn.Module):
     def __init__(self, feat_stride, scales, ratios):
         super(_ProposalLayer, self).__init__()
         self._feat_stride = feat_stride
+        self.device = torch.device("cuda")
         self._anchors = torch.from_numpy(generate_anchors(scales=np.array(scales), 
                                                 ratios=np.array(ratios)))
         self._num_anchors = self._anchors.size(0)
-
-        pass
 
     def forward(self, rpn_cls_probs, rpn_pred_bboxes, im_shapes, cfg_key):
         """
@@ -55,12 +59,12 @@ class _ProposalLayer(nn.Module):
         shifts = torch.from_numpy(np.vstack((shift_x.ravel(), shift_y.ravel(),
                                   shift_x.ravel(), shift_y.ravel())).transpose())
         
-        shifts = shifts.contiguous().to(dtype=scores.dtype) # 49x4
+        shifts = shifts.contiguous().type_as(scores).float() # 49x4
 
         A = self._num_anchors
         K = shifts.size(0)
 
-        self._anchors = self._anchors.to(dtype=scores.dtype) # 9x4 tensor
+        self._anchors = self._anchors.type_as(scores) # 9x4 tensor
         anchors =  self._anchors.view(1, A, 4) + shifts.view(K, 1, 4)
         anchors = anchors.view(1, K * A, 4).expand(batch_size, K * A, 4)
 
@@ -74,7 +78,7 @@ class _ProposalLayer(nn.Module):
         scores = rearrange(scores, "b d h w -> b (h w d)")
 
         # Convrt anchors into proposals via bbox transformations
-        import pdb; pdb.set_trace()
-        proposals = bbox_transform(anchors, bbox_deltas, batch_size)                
+        proposals = bbox_transform_inv(anchors, bboxes_deltas)
+        proposals = clip_boxes(proposals, im_shapes, batch_size)
 
         return

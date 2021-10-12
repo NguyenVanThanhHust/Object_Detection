@@ -11,10 +11,10 @@ import torchvision
 import torchvision.models as models
 import numpy as np
 
-from resnet import resnet152, resnet101, resnet50, resnet34, resnet18
-from faster_rcnn_base import fasterRcnn
-from rpn import RegionProposalLayer
-from vgg import VGG
+from .resnet import resnet152, resnet101, resnet50, resnet34, resnet18
+from .faster_rcnn_base import fasterRcnn
+from .rpn import RegionProposalLayer
+from .vgg import VGG
 
 torch.cuda.empty_cache()
 
@@ -108,7 +108,7 @@ class faster_rcnn_resnet(fasterRcnn):
         # print(images.shape) torch.Size([4, 3, 1184, 768]) 
         feature_maps = self.backbone(images, extract_feature=True)
         # print(feature_maps.shape) torch.Size([4, 512, 7, 7])
-
+        import pdb; pdb.set_trace()
 
 def test():
     classes = ["Human", "dog", "cat"]

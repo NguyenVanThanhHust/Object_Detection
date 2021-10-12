@@ -12,7 +12,10 @@ import torchvision.models as models
 import numpy as np
 import os
 from easydict import EasyDict as edict
-from proposal_layer import _ProposalLayer
+try:
+    from .proposal_layer import _ProposalLayer
+except :
+    from proposal_layer import _ProposalLayer
 
 class config:
     def __init__(self, ):
@@ -54,6 +57,7 @@ class RegionProposalLayer(nn.Module):
 
         self.RPN_proposal = _ProposalLayer(cfg.FEAT_STRIDE, cfg.ANCHOR_SCALES, cfg.ANCHOR_RATIOS)
 
+
     @staticmethod
     def reshape(x, d):
         input_shape = x.size()
@@ -83,7 +87,7 @@ class RegionProposalLayer(nn.Module):
         image_shape = []
         cfg_key = "TRAIN"
         rois = self.RPN_proposal(rpn_cls_probs, rpn_pred_bboxes, image_shape, cfg_key)
-
+        
         print("rpn_features.shape", rpn_features.shape)
         print("rpn_bboxes.shape", rpn_pred_bboxes.shape)
         print("rpn_cls_probs.shape", rpn_cls_probs.shape)
@@ -102,7 +106,7 @@ def test():
     fake_features = torch.rand([4, 512, 7, 7])
     device = torch.device("cuda")
     fake_features = fake_features.to(device)
-    rpn_layer.to(device)
+    rpn_layer = rpn_layer.to(device)
     results = rpn_layer(fake_features)
     rpn_features, rpn_cls_scores, rpn_bboxes = results
     print("rpn_bboxes.shape", rpn_bboxes.shape)
