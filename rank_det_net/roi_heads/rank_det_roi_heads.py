@@ -16,6 +16,7 @@ class RankROIHeads(StandardROIHeads):
         super(RankROIHeads, self).__init__(cfg, input_shape)
         self.config=cfg
 
+
     def forward(self, images, features, proposals, targets=None):
         del images
         if self.training:

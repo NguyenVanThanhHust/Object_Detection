@@ -2,6 +2,7 @@
 _BASE_: "Base-RCNN-FPN.yaml"
 MODEL:
   # WEIGHTS: "./pretrained_weights/R-50.pkl"
+  
   MASK_ON: False
   RESNETS:
     DEPTH: 50
@@ -9,11 +10,11 @@ MODEL:
     NAME: "RankROIHeads"
   RANK_ROI_HEAD:
     NAME: "RankROIHeads"
-    
 DATASETS:
   TRAIN: ("coco_2017_train",)
   TEST: ("coco_2017_val",)
 SOLVER:
   IMS_PER_BATCH: 2
   BASE_LR: 0.0001
+  OHEM_USE_NMS: True
 OUTPUT_DIR: "outputs/"
